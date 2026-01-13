@@ -73,38 +73,44 @@ const configuracionInicial = {
 }
 
 function App() {
-  const [productos, setProductos] = useState(productosIniciales)
-  const [configuracion, setConfiguracion] = useState(configuracionInicial)
+  // Cargar desde localStorage o usar iniciales
+  const [productos, setProductos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('productos')
+      return saved ? JSON.parse(saved) : productosIniciales
+    } catch {
+      return productosIniciales
+    }
+  })
+
+  const [configuracion, setConfiguracion] = useState(() => {
+    try {
+      const saved = localStorage.getItem('configuracion')
+      return saved ? JSON.parse(saved) : configuracionInicial
+    } catch {
+      return configuracionInicial
+    }
+  })
+
   const [showAdmin, setShowAdmin] = useState(false)
   const [filtroCategoria, setFiltroCategoria] = useState('todos')
 
-  // Cargar desde localStorage al iniciar
-  useEffect(() => {
-    try {
-      const savedProductos = localStorage.getItem('productos')
-      if (savedProductos) {
-        setProductos(JSON.parse(savedProductos))
-      }
-      const savedConfig = localStorage.getItem('configuracion')
-      if (savedConfig) {
-        setConfiguracion(JSON.parse(savedConfig))
-      }
-    } catch (e) {
-      console.warn('No se pudieron cargar datos guardados:', e)
-    }
-  }, [])
-
-  // Guardar cambios en localStorage
+  // Guardar productos en localStorage cuando cambien
   useEffect(() => {
     try {
       localStorage.setItem('productos', JSON.stringify(productos))
-    } catch {}
+    } catch (e) {
+      console.error('Error guardando productos:', e)
+    }
   }, [productos])
 
+  // Guardar configuración en localStorage cuando cambie
   useEffect(() => {
     try {
       localStorage.setItem('configuracion', JSON.stringify(configuracion))
-    } catch {}
+    } catch (e) {
+      console.error('Error guardando configuración:', e)
+    }
   }, [configuracion])
 
   const productosFiltrados = filtroCategoria === 'todos' 
