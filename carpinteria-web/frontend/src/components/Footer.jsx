@@ -22,7 +22,8 @@ function Footer({ configuracion }) {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; 2026 {configuracion.nombreNegocio}. Todos los derechos reservados.</p>
+        <span>&copy; 2026 {configuracion.nombreNegocio}. Todos los derechos reservados.</span>
+        <span className="dev-credit">Desarrollador Web Elkin de la cruz cudris</span>
       </div>
     </footer>
   )
