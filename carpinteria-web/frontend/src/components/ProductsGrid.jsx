@@ -10,7 +10,7 @@ const categorias = [
   { id: 'closets', nombre: '🗄️ Closets' }
 ]
 
-function ProductsGrid({ productos, filtroCategoria, setFiltroCategoria }) {
+function ProductsGrid({ productos, filtroCategoria, setFiltroCategoria, configuracion }) {
   return (
     <section id="productos" className="products-section">
       <h2>Nuestros Productos</h2>
@@ -33,7 +33,7 @@ function ProductsGrid({ productos, filtroCategoria, setFiltroCategoria }) {
             <p className="no-products">No hay productos en esta categoría</p>
           ) : (
             productos.map(producto => (
-              <ProductCard key={producto.id} producto={producto} />
+              <ProductCard key={producto.id} producto={producto} configuracion={configuracion} />
             ))
           )}
         </div>

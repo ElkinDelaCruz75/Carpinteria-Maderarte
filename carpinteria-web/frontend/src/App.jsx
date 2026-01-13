@@ -61,9 +61,9 @@ const productosIniciales = [
 const configuracionInicial = {
   nombreNegocio: 'Carpintería Maderarte',
   direccion: 'Av. Principal #123, Col. Centro, Ciudad',
-  telefono: '+52 555 123 4567',
+  telefono: '+57 313 603 6717',
   email: 'contacto@maderarte.com',
-  whatsapp: '5551234567',
+  whatsapp: '573136036717',
   horario: 'Lun-Vie: 9am-6pm, Sáb: 9am-2pm',
   logo: '',
   colorPrincipal: '#8B4513',
@@ -86,7 +86,16 @@ function App() {
   const [configuracion, setConfiguracion] = useState(() => {
     try {
       const saved = localStorage.getItem('configuracion')
-      return saved ? JSON.parse(saved) : configuracionInicial
+      const config = saved ? JSON.parse(saved) : configuracionInicial
+      
+      // Forzar actualización del WhatsApp si es necesario
+      if (config.whatsapp !== '573136036717') {
+        config.whatsapp = '573136036717'
+        config.telefono = '+57 313 603 6717'
+        localStorage.setItem('configuracion', JSON.stringify(config))
+      }
+      
+      return config
     } catch {
       return configuracionInicial
     }
@@ -128,6 +137,7 @@ function App() {
         productos={productosFiltrados} 
         filtroCategoria={filtroCategoria}
         setFiltroCategoria={setFiltroCategoria}
+        configuracion={configuracion}
       />
       <Contact configuracion={configuracion} />
       <Footer configuracion={configuracion} />
