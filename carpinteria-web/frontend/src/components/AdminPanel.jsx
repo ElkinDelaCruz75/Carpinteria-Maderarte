@@ -8,6 +8,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
   const [uploading, setUploading] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(null)
   const [imageFilter, setImageFilter] = useState('todos')
+  const [productFilter, setProductFilter] = useState('todos')
   const [uploadCategory, setUploadCategory] = useState('cocinas')
   const [newProduct, setNewProduct] = useState({
     categoria: 'cocinas',
@@ -177,7 +178,53 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
           {activeTab === 'productos' && (
             <div className="products-list">
               <h3>Gestionar Productos</h3>
-              {productos.map(producto => (
+              
+              <div className="category-filter-tabs">
+                <button 
+                  className={productFilter === 'todos' ? 'active' : ''}
+                  onClick={() => setProductFilter('todos')}
+                >
+                  🏠 Todos
+                </button>
+                <button 
+                  className={productFilter === 'cocinas' ? 'active' : ''}
+                  onClick={() => setProductFilter('cocinas')}
+                >
+                  🍳 Cocinas
+                </button>
+                <button 
+                  className={productFilter === 'camas' ? 'active' : ''}
+                  onClick={() => setProductFilter('camas')}
+                >
+                  🛏️ Camas
+                </button>
+                <button 
+                  className={productFilter === 'puertas' ? 'active' : ''}
+                  onClick={() => setProductFilter('puertas')}
+                >
+                  🚪 Puertas
+                </button>
+                <button 
+                  className={productFilter === 'ventanas' ? 'active' : ''}
+                  onClick={() => setProductFilter('ventanas')}
+                >
+                  🪟 Ventanas
+                </button>
+                <button 
+                  className={productFilter === 'muebles' ? 'active' : ''}
+                  onClick={() => setProductFilter('muebles')}
+                >
+                  🪑 Muebles
+                </button>
+                <button 
+                  className={productFilter === 'closets' ? 'active' : ''}
+                  onClick={() => setProductFilter('closets')}
+                >
+                  🗄️ Closets
+                </button>
+              </div>
+
+              {productos.filter(p => productFilter === 'todos' || p.categoria === productFilter).map(producto => (
                 <div key={producto.id} className="product-item">
                   {editingProduct?.id === producto.id ? (
                     <div className="edit-form">
