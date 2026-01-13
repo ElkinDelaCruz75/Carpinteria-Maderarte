@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import ProductsGrid from './components/ProductsGrid'
@@ -77,6 +77,35 @@ function App() {
   const [configuracion, setConfiguracion] = useState(configuracionInicial)
   const [showAdmin, setShowAdmin] = useState(false)
   const [filtroCategoria, setFiltroCategoria] = useState('todos')
+
+  // Cargar desde localStorage al iniciar
+  useEffect(() => {
+    try {
+      const savedProductos = localStorage.getItem('productos')
+      if (savedProductos) {
+        setProductos(JSON.parse(savedProductos))
+      }
+      const savedConfig = localStorage.getItem('configuracion')
+      if (savedConfig) {
+        setConfiguracion(JSON.parse(savedConfig))
+      }
+    } catch (e) {
+      console.warn('No se pudieron cargar datos guardados:', e)
+    }
+  }, [])
+
+  // Guardar cambios en localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('productos', JSON.stringify(productos))
+    } catch {}
+  }, [productos])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('configuracion', JSON.stringify(configuracion))
+    } catch {}
+  }, [configuracion])
 
   const productosFiltrados = filtroCategoria === 'todos' 
     ? productos 
