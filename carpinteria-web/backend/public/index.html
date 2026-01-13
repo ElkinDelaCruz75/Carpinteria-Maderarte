@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería de Imágenes - Carpintería Maderarte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #5D4037, #3E2723);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .upload-section {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .upload-section h2 {
+      color: #3E2723;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+
+    .upload-area {
+      border: 3px dashed #8D6E63;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #faf8f5;
+    }
+
+    .upload-area:hover {
+      border-color: #6D4C41;
+      background: #f0ebe5;
+    }
+
+    .upload-area input {
+      display: none;
+    }
+
+    .upload-area p {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-area small {
+      color: #999;
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #4CAF50, #388E3C);
+      color: white;
+      padding: 0.8rem 2rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-top: 1rem;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .gallery-section {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .gallery-section h2 {
+      color: #3E2723;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .image-card {
+      background: #f9f9f9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .image-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .image-info {
+      padding: 1rem;
+    }
+
+    .copy-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #2196F3, #1976D2);
+      color: white;
+      border: none;
+      padding: 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+      margin-bottom: 0.5rem;
+    }
+
+    .copy-btn:hover {
+      background: linear-gradient(135deg, #1976D2, #1565C0);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #4CAF50, #388E3C);
+    }
+
+    .delete-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #f44336, #d32f2f);
+      color: white;
+      border: none;
+      padding: 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .delete-btn:hover {
+      background: linear-gradient(135deg, #d32f2f, #c62828);
+    }
+
+    .url-display {
+      background: #f0f0f0;
+      padding: 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      word-break: break-all;
+      color: #666;
+      margin-bottom: 0.5rem;
+      font-family: monospace;
+    }
+
+    .no-images {
+      text-align: center;
+      color: #999;
+      padding: 3rem;
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .upload-section {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🖼️ Galería de Imágenes</h1>
+      <p>Carpintería Maderarte - Centro de Gestión de Imágenes</p>
+    </div>
+
+    <div class="upload-section">
+      <h2>📤 Subir Imagen</h2>
+      <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📸</div>
+        <p>Haz clic o arrastra una imagen aquí</p>
+        <small>Formatos soportados: JPG, PNG, GIF, WEBP (máx. 10MB)</small>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <button class="button" onclick="uploadImage()" id="uploadBtn">Subir Imagen</button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="gallery-section">
+      <h2>📁 Imágenes Subidas</h2>
+      <div class="gallery-grid" id="gallery">
+        <p class="no-images">Cargando imágenes...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const gallery = document.getElementById('gallery');
+    const status = document.getElementById('status');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    // Cargar imágenes al iniciar
+    loadImages();
+
+    // Drag and drop
+    const uploadArea = document.querySelector('.upload-area');
+    
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#6D4C41';
+      uploadArea.style.background = '#f0ebe5';
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = '#8D6E63';
+      uploadArea.style.background = '#faf8f5';
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#8D6E63';
+      uploadArea.style.background = '#faf8f5';
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        uploadImage();
+      }
+    });
+
+    async function uploadImage() {
+      const file = fileInput.files[0];
+      if (!file) {
+        showStatus('Selecciona una imagen', 'error');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('imagen', file);
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '⏳ Subiendo...';
+
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showStatus('✅ Imagen subida correctamente', 'success');
+          fileInput.value = '';
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Subir Imagen';
+          loadImages();
+        } else {
+          showStatus('❌ Error: ' + data.error, 'error');
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = 'Subir Imagen';
+        }
+      } catch (error) {
+        showStatus('❌ Error al subir la imagen', 'error');
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Subir Imagen';
+      }
+    }
+
+    async function loadImages() {
+      try {
+        const response = await fetch('/api/imagenes');
+        const imagenes = await response.json();
+
+        gallery.innerHTML = '';
+
+        if (imagenes.length === 0) {
+          gallery.innerHTML = '<p class="no-images">No hay imágenes subidas aún</p>';
+          return;
+        }
+
+        imagenes.forEach(img => {
+          const card = document.createElement('div');
+          card.className = 'image-card';
+          card.innerHTML = `
+            <img src="${img.url}" alt="${img.filename}">
+            <div class="image-info">
+              <div class="url-display">${img.url}</div>
+              <button class="copy-btn" onclick="copyURL('${img.url}', this)">📋 Copiar URL</button>
+              <button class="delete-btn" onclick="deleteImage('${img.filename}')">🗑️ Eliminar</button>
+            </div>
+          `;
+          gallery.appendChild(card);
+        });
+      } catch (error) {
+        gallery.innerHTML = '<p class="no-images">Error al cargar imágenes</p>';
+      }
+    }
+
+    function copyURL(url, button) {
+      navigator.clipboard.writeText(url).then(() => {
+        const originalText = button.textContent;
+        button.textContent = '✅ ¡Copiado!';
+        button.classList.add('copied');
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    async function deleteImage(filename) {
+      if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return;
+
+      try {
+        await fetch(`/api/imagenes/${filename}`, {
+          method: 'DELETE'
+        });
+        loadImages();
+        showStatus('✅ Imagen eliminada', 'success');
+      } catch (error) {
+        showStatus('❌ Error al eliminar', 'error');
+      }
+    }
+
+    function showStatus(message, type) {
+      status.textContent = message;
+      status.className = `status ${type}`;
+      status.style.display = 'block';
+      
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
