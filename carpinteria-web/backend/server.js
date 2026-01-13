@@ -71,9 +71,6 @@ const withFolder = (id) => {
 app.use(cors());
 app.use(express.json());
 
-// Servir la página HTML de galería
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Ruta de prueba
 app.get('/api', (req, res) => {
   res.json({ 
@@ -86,10 +83,6 @@ app.get('/api', (req, res) => {
       eliminarImagen: 'DELETE /api/imagenes/:id'
     }
   });
-});
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Datos de ejemplo (en producción usarías una base de datos)

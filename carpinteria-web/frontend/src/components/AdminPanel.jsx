@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import API_URL from '../config'
 
 function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, onClose }) {
   const [activeTab, setActiveTab] = useState('productos')
@@ -23,7 +24,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
 
   const fetchImagenes = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/imagenes')
+      const res = await fetch(`${API_URL}/imagenes`)
       const data = await res.json()
       setImagenes(data)
     } catch (error) {
@@ -40,7 +41,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
     formData.append('imagen', file)
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData
       })
@@ -60,7 +61,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
     if (!confirm('¿Estás seguro de eliminar esta imagen?')) return
 
     try {
-      await fetch(`http://localhost:5000/api/imagenes/${filename}`, {
+      await fetch(`${API_URL}/imagenes/${filename}`, {
         method: 'DELETE'
       })
       fetchImagenes()
