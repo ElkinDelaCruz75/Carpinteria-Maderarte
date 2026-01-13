@@ -165,10 +165,13 @@ app.post('/api/upload', upload.single('imagen'), async (req, res) => {
       return res.status(400).json({ error: 'No se subió ninguna imagen' });
     }
 
+    const categoria = req.body.categoria || 'general';
+    const folderPath = `${CLOUDINARY_FOLDER}/${categoria}`;
+
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          folder: CLOUDINARY_FOLDER,
+          folder: folderPath,
           resource_type: 'image'
         },
         (error, uploadResult) => {
@@ -196,11 +199,16 @@ app.get('/api/imagenes', async (req, res) => {
   if (!ensureCloudinaryConfigured(res)) return;
 
   try {
+    const { categoria } = req.query;
+    const prefix = categoria && categoria !== 'todos'
+      ? `${CLOUDINARY_FOLDER}/${categoria}/`
+      : CLOUDINARY_FOLDER ? `${CLOUDINARY_FOLDER}/` : undefined;
+
     const { resources } = await cloudinary.api.resources({
       type: 'upload',
-      prefix: CLOUDINARY_FOLDER ? `${CLOUDINARY_FOLDER}/` : undefined,
+      prefix: prefix,
       resource_type: 'image',
-      max_results: 100
+      max_results: 500
     });
 
     const imagenes = resources.map((img) => ({

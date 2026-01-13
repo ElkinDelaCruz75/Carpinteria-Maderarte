@@ -14,7 +14,7 @@ const productosIniciales = [
     nombre: 'Cocina Integral Moderna',
     descripcion: 'Cocina completa con acabados en madera de roble y mármol',
     precio: '$15,000',
-    imagen: 'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?w=500']
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ const productosIniciales = [
     nombre: 'Cocina Minimalista',
     descripcion: 'Diseño contemporáneo con líneas limpias',
     precio: '$12,000',
-    imagen: 'https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=500']
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const productosIniciales = [
     nombre: 'Cama King Size',
     descripcion: 'Cama de madera maciza con diseño elegante',
     precio: '$8,000',
-    imagen: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=500']
   },
   {
     id: 4,
@@ -38,7 +38,7 @@ const productosIniciales = [
     nombre: 'Recámara Completa',
     descripcion: 'Set completo con cama, buró y closet',
     precio: '$18,000',
-    imagen: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500']
   },
   {
     id: 5,
@@ -46,7 +46,7 @@ const productosIniciales = [
     nombre: 'Puerta Principal Tallada',
     descripcion: 'Puerta de madera con tallados artesanales',
     precio: '$5,000',
-    imagen: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1563298723-dcfebaa392e3?w=500']
   },
   {
     id: 6,
@@ -54,7 +54,7 @@ const productosIniciales = [
     nombre: 'Ventanas de Madera',
     descripcion: 'Ventanas con marco de madera tratada',
     precio: '$3,500',
-    imagen: 'https://images.unsplash.com/photo-1545259742-24f9c8b0d9ab?w=500'
+    imagenes: ['https://images.unsplash.com/photo-1545259742-24f9c8b0d9ab?w=500']
   }
 ]
 

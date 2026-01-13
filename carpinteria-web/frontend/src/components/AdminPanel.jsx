@@ -7,24 +7,29 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
   const [imagenes, setImagenes] = useState([])
   const [uploading, setUploading] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(null)
+  const [imageFilter, setImageFilter] = useState('todos')
+  const [uploadCategory, setUploadCategory] = useState('cocinas')
   const [newProduct, setNewProduct] = useState({
     categoria: 'cocinas',
     nombre: '',
     descripcion: '',
     precio: '',
-    imagen: ''
+    imagenes: []
   })
 
-  // Cargar imágenes al abrir la pestaña
+  // Cargar imágenes al abrir la pestaña o cambiar filtro
   useEffect(() => {
     if (activeTab === 'imagenes') {
       fetchImagenes()
     }
-  }, [activeTab])
+  }, [activeTab, imageFilter])
 
   const fetchImagenes = async () => {
     try {
-      const res = await fetch(`${API_URL}/imagenes`)
+      const url = imageFilter === 'todos' 
+        ? `${API_URL}/imagenes`
+        : `${API_URL}/imagenes?categoria=${imageFilter}`
+      const res = await fetch(url)
       const data = await res.json()
       setImagenes(data)
     } catch (error) {
@@ -33,27 +38,41 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
   }
 
   const handleUploadImage = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+    const files = Array.from(e.target.files)
+    if (files.length === 0) return
 
     setUploading(true)
-    const formData = new FormData()
-    formData.append('imagen', file)
-
+    
     try {
-      const res = await fetch(`${API_URL}/upload`, {
-        method: 'POST',
-        body: formData
+      // Subir todas las imágenes en paralelo con categoría
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData()
+        formData.append('imagen', file)
+        formData.append('categoria', uploadCategory)
+        
+        const res = await fetch(`${API_URL}/upload`, {
+          method: 'POST',
+          body: formData
+        })
+        return res.json()
       })
-      const data = await res.json()
-      if (data.success) {
+
+      const results = await Promise.all(uploadPromises)
+      const allSuccess = results.every(data => data.success)
+      
+      if (allSuccess) {
         fetchImagenes()
+        alert(`✅ ${files.length} imagen${files.length > 1 ? 'es' : ''} subida${files.length > 1 ? 's' : ''} en ${uploadCategory}`)
+      } else {
+        alert('⚠️ Algunas imágenes no se pudieron subir')
       }
     } catch (error) {
-      console.error('Error al subir imagen:', error)
-      alert('Error al subir la imagen')
+      console.error('Error al subir imágenes:', error)
+      alert('Error al subir las imágenes')
     } finally {
       setUploading(false)
+      // Limpiar el input para permitir volver a subir las mismas imágenes
+      e.target.value = ''
     }
   }
 
@@ -105,7 +124,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
       nombre: '',
       descripcion: '',
       precio: '',
-      imagen: ''
+      imagenes: []
     })
   }
 
@@ -174,12 +193,43 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                         onChange={(e) => setEditingProduct({...editingProduct, precio: e.target.value})}
                         placeholder="Precio"
                       />
-                      <input
-                        type="text"
-                        value={editingProduct.imagen}
-                        onChange={(e) => setEditingProduct({...editingProduct, imagen: e.target.value})}
-                        placeholder="URL de imagen"
-                      />
+                      <div className="images-list-edit">
+                        <label>📸 Imágenes del Producto</label>
+                        {(editingProduct.imagenes || []).map((img, idx) => (
+                          <div key={idx} className="image-edit-row">
+                            <input
+                              type="text"
+                              value={img}
+                              onChange={(e) => {
+                                const newImages = [...(editingProduct.imagenes || [])]
+                                newImages[idx] = e.target.value
+                                setEditingProduct({...editingProduct, imagenes: newImages})
+                              }}
+                              placeholder="URL de imagen"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newImages = (editingProduct.imagenes || []).filter((_, i) => i !== idx)
+                                setEditingProduct({...editingProduct, imagenes: newImages})
+                              }}
+                              className="remove-img-btn"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct({
+                            ...editingProduct,
+                            imagenes: [...(editingProduct.imagenes || []), '']
+                          })}
+                          className="add-img-btn"
+                        >
+                          ➕ Agregar Imagen
+                        </button>
+                      </div>
                       <textarea
                         value={editingProduct.descripcion}
                         onChange={(e) => setEditingProduct({...editingProduct, descripcion: e.target.value})}
@@ -203,7 +253,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                     </div>
                   ) : (
                     <>
-                      <img src={producto.imagen} alt={producto.nombre} />
+                      <img src={producto.imagenes?.[0] || 'https://via.placeholder.com/80'} alt={producto.nombre} />
                       <div className="product-info">
                         <h4>{producto.nombre}</h4>
                         <p>{producto.categoria} - {producto.precio}</p>
@@ -263,16 +313,46 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                 />
               </div>
               <div className="form-group">
-                <label>URL de Imagen</label>
-                <input
-                  type="text"
-                  value={newProduct.imagen}
-                  onChange={(e) => setNewProduct({...newProduct, imagen: e.target.value})}
-                  placeholder="https://..."
-                />
-                {newProduct.imagen && (
-                  <img src={newProduct.imagen} alt="Preview" className="image-preview" />
-                )}
+                <label>📸 Imágenes del Producto</label>
+                {(newProduct.imagenes || []).map((img, idx) => (
+                  <div key={idx} className="image-edit-row">
+                    <input
+                      type="text"
+                      value={img}
+                      onChange={(e) => {
+                        const newImages = [...(newProduct.imagenes || [])]
+                        newImages[idx] = e.target.value
+                        setNewProduct({...newProduct, imagenes: newImages})
+                      }}
+                      placeholder="https://..."
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = (newProduct.imagenes || []).filter((_, i) => i !== idx)
+                        setNewProduct({...newProduct, imagenes: newImages})
+                      }}
+                      className="remove-img-btn"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setNewProduct({
+                    ...newProduct,
+                    imagenes: [...(newProduct.imagenes || []), '']
+                  })}
+                  className="add-img-btn"
+                >
+                  ➕ Agregar Imagen
+                </button>
+                <div className="images-preview">
+                  {(newProduct.imagenes || []).map((img, idx) => img && (
+                    <img key={idx} src={img} alt={`preview ${idx}`} className="image-preview" />
+                  ))}
+                </div>
               </div>
               <button className="add-btn" onClick={handleAddProduct}>
                 ➕ Agregar Producto
@@ -283,24 +363,88 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
           {activeTab === 'imagenes' && (
             <div className="imagenes-section">
               <h3>🖼️ Galería de Imágenes</h3>
-              <p className="info-text">Sube imágenes aquí y copia el enlace para usarlo en tus productos</p>
+              <p className="info-text">Sube imágenes organizadas por categoría</p>
               
               <div className="upload-area">
-                <label className="upload-btn">
-                  {uploading ? '⏳ Subiendo...' : '📤 Subir Imagen'}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleUploadImage}
-                    disabled={uploading}
-                    hidden
-                  />
-                </label>
+                <div className="upload-controls">
+                  <select 
+                    value={uploadCategory} 
+                    onChange={(e) => setUploadCategory(e.target.value)}
+                    className="category-select"
+                  >
+                    <option value="cocinas">🍳 Cocinas</option>
+                    <option value="camas">🛏️ Camas</option>
+                    <option value="puertas">🚪 Puertas</option>
+                    <option value="ventanas">🪟 Ventanas</option>
+                    <option value="muebles">🪑 Muebles</option>
+                    <option value="closets">👔 Closets</option>
+                  </select>
+                  <label className="upload-btn">
+                    {uploading ? '⏳ Subiendo...' : '📤 Subir Imagen(es)'}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUploadImage}
+                      disabled={uploading}
+                      multiple
+                      hidden
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="image-categories">
+                <button 
+                  className={imageFilter === 'todos' ? 'active' : ''} 
+                  onClick={() => setImageFilter('todos')}
+                >
+                  🏠 Todos
+                </button>
+                <button 
+                  className={imageFilter === 'cocinas' ? 'active' : ''} 
+                  onClick={() => setImageFilter('cocinas')}
+                >
+                  🍳 Cocinas
+                </button>
+                <button 
+                  className={imageFilter === 'camas' ? 'active' : ''} 
+                  onClick={() => setImageFilter('camas')}
+                >
+                  🛏️ Camas
+                </button>
+                <button 
+                  className={imageFilter === 'puertas' ? 'active' : ''} 
+                  onClick={() => setImageFilter('puertas')}
+                >
+                  🚪 Puertas
+                </button>
+                <button 
+                  className={imageFilter === 'ventanas' ? 'active' : ''} 
+                  onClick={() => setImageFilter('ventanas')}
+                >
+                  🪟 Ventanas
+                </button>
+                <button 
+                  className={imageFilter === 'muebles' ? 'active' : ''} 
+                  onClick={() => setImageFilter('muebles')}
+                >
+                  🪑 Muebles
+                </button>
+                <button 
+                  className={imageFilter === 'closets' ? 'active' : ''} 
+                  onClick={() => setImageFilter('closets')}
+                >
+                  👔 Closets
+                </button>
               </div>
 
               <div className="imagenes-grid">
                 {imagenes.length === 0 ? (
-                  <p className="no-images">No hay imágenes subidas aún</p>
+                  <p className="no-images">
+                    {imageFilter === 'todos' 
+                      ? 'No hay imágenes subidas aún' 
+                      : `No hay imágenes en la categoría ${imageFilter}`}
+                  </p>
                 ) : (
                   imagenes.map((img) => (
                     <div key={img.filename} className="imagen-item">
