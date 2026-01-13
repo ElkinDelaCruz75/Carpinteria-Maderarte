@@ -2,34 +2,39 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config();
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+const CLOUDINARY_FOLDER = process.env.CLOUDINARY_FOLDER || 'carpinteria_maderarte';
 
-// Crear carpeta uploads si no existe
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const cloudinaryConfig = process.env.CLOUDINARY_URL
+  ? { cloudinary_url: process.env.CLOUDINARY_URL }
+  : {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    };
 
-// Configuración de Multer para subir archivos
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
-});
+cloudinary.config(cloudinaryConfig);
 
-const upload = multer({ 
+const isCloudinaryReady = Boolean(
+  (process.env.CLOUDINARY_URL) ||
+  (process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET)
+);
+
+const storage = multer.memoryStorage();
+
+const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB máximo
   fileFilter: (req, file, cb) => {
@@ -44,11 +49,27 @@ const upload = multer({
   }
 });
 
+const ensureCloudinaryConfigured = (res) => {
+  if (!isCloudinaryReady) {
+    res.status(500).json({ error: 'Cloudinary no está configurado en el servidor' });
+    return false;
+  }
+  return true;
+};
+
+const stripFolder = (publicId) => {
+  if (!publicId || !CLOUDINARY_FOLDER) return publicId;
+  const prefix = `${CLOUDINARY_FOLDER}/`;
+  return publicId.startsWith(prefix) ? publicId.slice(prefix.length) : publicId;
+};
+
+const withFolder = (id) => {
+  if (!CLOUDINARY_FOLDER) return id;
+  return id.startsWith(`${CLOUDINARY_FOLDER}/`) ? id : `${CLOUDINARY_FOLDER}/${id}`;
+};
+
 app.use(cors());
 app.use(express.json());
-
-// Servir archivos estáticos de uploads
-app.use('/uploads', express.static(uploadsDir));
 
 // Servir la página HTML de galería
 app.use(express.static(path.join(__dirname, 'public')));
@@ -62,7 +83,7 @@ app.get('/api', (req, res) => {
       productoId: 'GET /api/productos/:id',
       subir: 'POST /api/upload',
       imagenes: 'GET /api/imagenes',
-      eliminarImagen: 'DELETE /api/imagenes/:filename'
+      eliminarImagen: 'DELETE /api/imagenes/:id'
     }
   });
 });
@@ -143,49 +164,79 @@ app.get('/api/productos/:id', (req, res) => {
 });
 
 // Subir imagen
-app.post('/api/upload', upload.single('imagen'), (req, res) => {
+app.post('/api/upload', upload.single('imagen'), async (req, res) => {
+  if (!ensureCloudinaryConfigured(res)) return;
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se subió ninguna imagen' });
     }
-    const imageUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
-    res.json({ 
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: CLOUDINARY_FOLDER,
+          resource_type: 'image'
+        },
+        (error, uploadResult) => {
+          if (error) return reject(error);
+          return resolve(uploadResult);
+        }
+      );
+
+      stream.end(req.file.buffer);
+    });
+
+    res.json({
       success: true,
-      url: imageUrl,
-      filename: req.file.filename
+      url: result.secure_url,
+      filename: stripFolder(result.public_id)
     });
   } catch (error) {
+    console.error('Error al subir imagen a Cloudinary:', error);
     res.status(500).json({ error: 'Error al subir la imagen' });
   }
 });
 
 // Obtener todas las imágenes
-app.get('/api/imagenes', (req, res) => {
+app.get('/api/imagenes', async (req, res) => {
+  if (!ensureCloudinaryConfigured(res)) return;
+
   try {
-    const files = fs.readdirSync(uploadsDir);
-    const imagenes = files
-      .filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-      .map(file => ({
-        filename: file,
-        url: `http://localhost:${PORT}/uploads/${file}`
-      }));
+    const { resources } = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: CLOUDINARY_FOLDER ? `${CLOUDINARY_FOLDER}/` : undefined,
+      resource_type: 'image',
+      max_results: 100
+    });
+
+    const imagenes = resources.map((img) => ({
+      filename: stripFolder(img.public_id),
+      url: img.secure_url
+    }));
+
     res.json(imagenes);
   } catch (error) {
+    console.error('Error al listar imágenes en Cloudinary:', error);
     res.status(500).json({ error: 'Error al obtener imágenes' });
   }
 });
 
 // Eliminar imagen
-app.delete('/api/imagenes/:filename', (req, res) => {
+app.delete('/api/imagenes/:filename', async (req, res) => {
+  if (!ensureCloudinaryConfigured(res)) return;
+
   try {
-    const filePath = path.join(uploadsDir, req.params.filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({ success: true, mensaje: 'Imagen eliminada' });
-    } else {
-      res.status(404).json({ error: 'Imagen no encontrada' });
+    const publicId = withFolder(req.params.filename);
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result === 'not found') {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
     }
+
+    res.json({ success: true, mensaje: 'Imagen eliminada' });
   } catch (error) {
+    console.error('Error al eliminar imagen en Cloudinary:', error);
     res.status(500).json({ error: 'Error al eliminar la imagen' });
   }
 });

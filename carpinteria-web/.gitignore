@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+frontend/dist/
+backend/uploads/
+
+# Local env/config
+.env
+.env.*
+!.env.example
+.vercel/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

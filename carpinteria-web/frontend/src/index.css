@@ -558,6 +558,30 @@ html {
   color: white;
 }
 
+.admin-shortcuts {
+  padding: 0.8rem 2rem;
+  background: #f8f8f8;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.images-shortcut {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.35);
+}
+
+.images-shortcut:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(25, 118, 210, 0.45);
+}
+
 .admin-header h2 {
   font-size: 1.5rem;
 }

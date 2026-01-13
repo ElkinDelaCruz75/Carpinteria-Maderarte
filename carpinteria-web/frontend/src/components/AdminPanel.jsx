@@ -120,6 +120,12 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
+        <div className="admin-shortcuts">
+          <button className="images-shortcut" onClick={() => setActiveTab('imagenes')}>
+            🖼️ Ir a Imágenes
+          </button>
+        </div>
+
         <div className="admin-tabs">
           <button 
             className={activeTab === 'productos' ? 'active' : ''} 
