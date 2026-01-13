@@ -442,6 +442,88 @@ html {
   animation: fadeInUp 0.5s ease;
 }
 
+/* Image Modal */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.modal-content img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #8D6E63;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 1;
+}
+
+.modal-close:hover {
+  background: #6D4C41;
+  transform: rotate(90deg);
+}
+
+.modal-info {
+  text-align: center;
+}
+
+.modal-info h3 {
+  color: #3E2723;
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.modal-info p {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.modal-info .precio {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #8D6E63;
+}
+
 /* Footer */
 .footer {
   background: linear-gradient(135deg, #3E2723, #1B0000);
