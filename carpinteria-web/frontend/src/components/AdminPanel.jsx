@@ -160,6 +160,47 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
     setConfiguracion({ ...configuracion, [field]: value })
   }
 
+  const handleExportData = () => {
+    const data = {
+      productos,
+      configuracion,
+      fecha: new Date().toISOString()
+    }
+    const json = JSON.stringify(data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `carpinteria-backup-${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    alert('✅ Datos exportados correctamente. Ahora puedes importarlos en otro dispositivo.')
+  }
+
+  const handleImportData = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result)
+        if (data.productos && data.configuracion) {
+          setProductos(data.productos)
+          setConfiguracion(data.configuracion)
+          alert('✅ Datos importados correctamente. La página se actualizará.')
+          setTimeout(() => window.location.reload(), 1000)
+        } else {
+          alert('❌ Archivo inválido. Debe contener productos y configuración.')
+        }
+      } catch (error) {
+        alert('❌ Error al leer el archivo: ' + error.message)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
   return (
     <div className="admin-overlay">
       <div className="admin-panel">
@@ -172,6 +213,13 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
           <button className="images-shortcut" onClick={() => setActiveTab('imagenes')}>
             🖼️ Ir a Imágenes
           </button>
+          <button className="export-btn" onClick={handleExportData}>
+            💾 Exportar Datos
+          </button>
+          <label className="import-btn">
+            📥 Importar Datos
+            <input type="file" accept=".json" onChange={handleImportData} hidden />
+          </label>
         </div>
 
         <div className="admin-tabs">
