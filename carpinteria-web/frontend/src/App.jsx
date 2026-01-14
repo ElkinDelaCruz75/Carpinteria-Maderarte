@@ -67,7 +67,7 @@ const configuracionInicial = {
   horario: 'Lun-Vie: 9am-6pm, Sáb: 9am-2pm',
   logo: '',
   colorPrincipal: '#8B4513',
-  slogan: 'Muebles de calidad hechos con maestría',
+  slogan: 'Muebles de calidad hechos con maestría y Profecionalismo',
   facebook: 'https://facebook.com/maderarte',
   instagram: 'https://instagram.com/maderarte'
 }
