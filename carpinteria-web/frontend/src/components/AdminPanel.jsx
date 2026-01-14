@@ -8,6 +8,8 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
   const [uploading, setUploading] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(null)
   const [imageFilter, setImageFilter] = useState('todos')
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [modalImageUrl, setModalImageUrl] = useState('')
   const [uploadCategory, setUploadCategory] = useState('cocinas')
   const [newProduct, setNewProduct] = useState({
     categoria: 'cocinas',
@@ -42,6 +44,16 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
       console.error('Error al cargar imágenes:', error)
       setImagenes([])
     }
+  }
+
+  const openImageModal = (url) => {
+    setModalImageUrl(url)
+    setShowImageModal(true)
+  }
+
+  const closeImageModal = () => {
+    setShowImageModal(false)
+    setModalImageUrl('')
   }
 
   const handleUploadImage = async (e) => {
@@ -478,7 +490,12 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                 ) : (
                   imagenes.map((img) => (
                     <div key={img.filename} className="imagen-item">
-                      <img src={img.url} alt={img.filename} />
+                      <img 
+                        src={img.url} 
+                        alt={img.filename} 
+                        className="imagen-thumb"
+                        onClick={() => openImageModal(img.url)}
+                      />
                       <div className="imagen-actions">
                         <button 
                           className={`copy-btn ${copiedUrl === img.url ? 'copied' : ''}`}
@@ -504,6 +521,15 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                   ))
                 )}
               </div>
+
+              {showImageModal && (
+                <div className="admin-image-modal" onClick={closeImageModal}>
+                  <div className="admin-image-modal-content" onClick={(e) => e.stopPropagation()}>
+                    <button className="admin-image-modal-close" onClick={closeImageModal}>✕</button>
+                    <img src={modalImageUrl} alt="Vista ampliada" />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
