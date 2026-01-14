@@ -8,7 +8,6 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
   const [uploading, setUploading] = useState(false)
   const [copiedUrl, setCopiedUrl] = useState(null)
   const [imageFilter, setImageFilter] = useState('todos')
-  const [productFilter, setProductFilter] = useState('todos')
   const [uploadCategory, setUploadCategory] = useState('cocinas')
   const [newProduct, setNewProduct] = useState({
     categoria: 'cocinas',
@@ -27,14 +26,21 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
 
   const fetchImagenes = async () => {
     try {
-      const url = imageFilter === 'todos' 
-        ? `${API_URL}/imagenes`
-        : `${API_URL}/imagenes?categoria=${imageFilter}`
+      let url = `${API_URL}/imagenes`
+      if (imageFilter && imageFilter !== 'todos') {
+        url += `?categoria=${imageFilter}`
+      }
+      console.log('Fetching from:', url)
       const res = await fetch(url)
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${res.statusText}`)
+      }
       const data = await res.json()
+      console.log('Imágenes recibidas:', data.length, 'Filtro:', imageFilter)
       setImagenes(data)
     } catch (error) {
       console.error('Error al cargar imágenes:', error)
+      setImagenes([])
     }
   }
 
@@ -77,16 +83,25 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
     }
   }
 
-  const handleDeleteImage = async (filename) => {
+  const handleDeleteImage = async (publicId) => {
     if (!confirm('¿Estás seguro de eliminar esta imagen?')) return
 
     try {
-      await fetch(`${API_URL}/imagenes/${filename}`, {
+      console.log('Eliminando imagen:', publicId)
+      const res = await fetch(`${API_URL}/imagenes?public_id=${encodeURIComponent(publicId)}`, {
         method: 'DELETE'
       })
-      fetchImagenes()
+      if (res.ok) {
+        console.log('Imagen eliminada exitosamente')
+        fetchImagenes()
+      } else {
+        const error = await res.json()
+        console.error('Error al eliminar:', error)
+        alert('Error al eliminar la imagen: ' + error.error)
+      }
     } catch (error) {
       console.error('Error al eliminar imagen:', error)
+      alert('Error al eliminar la imagen')
     }
   }
 
@@ -178,53 +193,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
           {activeTab === 'productos' && (
             <div className="products-list">
               <h3>Gestionar Productos</h3>
-              
-              <div className="category-filter-tabs">
-                <button 
-                  className={productFilter === 'todos' ? 'active' : ''}
-                  onClick={() => setProductFilter('todos')}
-                >
-                  🏠 Todos
-                </button>
-                <button 
-                  className={productFilter === 'cocinas' ? 'active' : ''}
-                  onClick={() => setProductFilter('cocinas')}
-                >
-                  🍳 Cocinas
-                </button>
-                <button 
-                  className={productFilter === 'camas' ? 'active' : ''}
-                  onClick={() => setProductFilter('camas')}
-                >
-                  🛏️ Camas
-                </button>
-                <button 
-                  className={productFilter === 'puertas' ? 'active' : ''}
-                  onClick={() => setProductFilter('puertas')}
-                >
-                  🚪 Puertas
-                </button>
-                <button 
-                  className={productFilter === 'ventanas' ? 'active' : ''}
-                  onClick={() => setProductFilter('ventanas')}
-                >
-                  🪟 Ventanas
-                </button>
-                <button 
-                  className={productFilter === 'muebles' ? 'active' : ''}
-                  onClick={() => setProductFilter('muebles')}
-                >
-                  🪑 Muebles
-                </button>
-                <button 
-                  className={productFilter === 'closets' ? 'active' : ''}
-                  onClick={() => setProductFilter('closets')}
-                >
-                  🗄️ Closets
-                </button>
-              </div>
-
-              {productos.filter(p => productFilter === 'todos' || p.categoria === productFilter).map(producto => (
+              {productos.map(producto => (
                 <div key={producto.id} className="product-item">
                   {editingProduct?.id === producto.id ? (
                     <div className="edit-form">
@@ -443,43 +412,57 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
               <div className="image-categories">
                 <button 
                   className={imageFilter === 'todos' ? 'active' : ''} 
-                  onClick={() => setImageFilter('todos')}
+                  onClick={() => {
+                    setImageFilter('todos')
+                  }}
                 >
                   🏠 Todos
                 </button>
                 <button 
                   className={imageFilter === 'cocinas' ? 'active' : ''} 
-                  onClick={() => setImageFilter('cocinas')}
+                  onClick={() => {
+                    setImageFilter('cocinas')
+                  }}
                 >
                   🍳 Cocinas
                 </button>
                 <button 
                   className={imageFilter === 'camas' ? 'active' : ''} 
-                  onClick={() => setImageFilter('camas')}
+                  onClick={() => {
+                    setImageFilter('camas')
+                  }}
                 >
                   🛏️ Camas
                 </button>
                 <button 
                   className={imageFilter === 'puertas' ? 'active' : ''} 
-                  onClick={() => setImageFilter('puertas')}
+                  onClick={() => {
+                    setImageFilter('puertas')
+                  }}
                 >
                   🚪 Puertas
                 </button>
                 <button 
                   className={imageFilter === 'ventanas' ? 'active' : ''} 
-                  onClick={() => setImageFilter('ventanas')}
+                  onClick={() => {
+                    setImageFilter('ventanas')
+                  }}
                 >
                   🪟 Ventanas
                 </button>
                 <button 
                   className={imageFilter === 'muebles' ? 'active' : ''} 
-                  onClick={() => setImageFilter('muebles')}
+                  onClick={() => {
+                    setImageFilter('muebles')
+                  }}
                 >
                   🪑 Muebles
                 </button>
                 <button 
                   className={imageFilter === 'closets' ? 'active' : ''} 
-                  onClick={() => setImageFilter('closets')}
+                  onClick={() => {
+                    setImageFilter('closets')
+                  }}
                 >
                   👔 Closets
                 </button>
@@ -505,7 +488,7 @@ function AdminPanel({ productos, setProductos, configuracion, setConfiguracion, 
                         </button>
                         <button 
                           className="delete-img-btn"
-                          onClick={() => handleDeleteImage(img.filename)}
+                          onClick={() => handleDeleteImage(img.public_id)}
                         >
                           🗑️
                         </button>

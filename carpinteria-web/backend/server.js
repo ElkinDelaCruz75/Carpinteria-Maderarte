@@ -166,7 +166,8 @@ app.post('/api/upload', upload.single('imagen'), async (req, res) => {
     }
 
     const categoria = req.body.categoria || 'general';
-    const folderPath = `${CLOUDINARY_FOLDER}/${categoria}`;
+    const categoriaCapitalizada = categoria.charAt(0).toUpperCase() + categoria.slice(1);
+    const folderPath = `${CLOUDINARY_FOLDER}/${categoriaCapitalizada}`;
 
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
@@ -200,9 +201,17 @@ app.get('/api/imagenes', async (req, res) => {
 
   try {
     const { categoria } = req.query;
-    const prefix = categoria && categoria !== 'todos'
-      ? `${CLOUDINARY_FOLDER}/${categoria}/`
-      : CLOUDINARY_FOLDER ? `${CLOUDINARY_FOLDER}/` : undefined;
+
+    let prefix = CLOUDINARY_FOLDER;
+    
+    // Si hay categoría especificada y no es "todos", agregar a la ruta
+    if (categoria && categoria !== 'todos') {
+      // Convertir la categoría a mayúscula inicial para coincidir con Cloudinary
+      const categoriaCapitalizada = categoria.charAt(0).toUpperCase() + categoria.slice(1);
+      prefix = `${CLOUDINARY_FOLDER}/${categoriaCapitalizada}`;
+    }
+
+    console.log(`\n🔍 Buscando imágenes con prefix: "${prefix}"`);
 
     const { resources } = await cloudinary.api.resources({
       type: 'upload',
@@ -211,24 +220,65 @@ app.get('/api/imagenes', async (req, res) => {
       max_results: 500
     });
 
+    console.log(`✅ Se encontraron ${resources.length} imágenes\n`);
+    
+    if (resources.length > 0 && categoria !== 'todos') {
+      console.log('Primeras imágenes encontradas:');
+      resources.slice(0, 3).forEach(img => {
+        console.log(`  - ${img.public_id}`);
+      });
+      console.log();
+    }
+
     const imagenes = resources.map((img) => ({
       filename: stripFolder(img.public_id),
-      url: img.secure_url
+      url: img.secure_url,
+      public_id: img.public_id
     }));
 
     res.json(imagenes);
   } catch (error) {
-    console.error('Error al listar imágenes en Cloudinary:', error);
+    console.error('❌ Error al listar imágenes en Cloudinary:', error.message);
     res.status(500).json({ error: 'Error al obtener imágenes' });
   }
 });
 
 // Eliminar imagen
+app.delete('/api/imagenes', async (req, res) => {
+  if (!ensureCloudinaryConfigured(res)) return;
+
+  try {
+    const { public_id } = req.query;
+    
+    if (!public_id) {
+      return res.status(400).json({ error: 'Se requiere public_id' });
+    }
+
+    console.log('Eliminando imagen con public_id:', public_id);
+    
+    const result = await cloudinary.uploader.destroy(public_id);
+
+    console.log('Resultado de eliminación:', result);
+
+    if (result.result === 'not found') {
+      return res.status(404).json({ error: 'Imagen no encontrada' });
+    }
+
+    res.json({ success: true, mensaje: 'Imagen eliminada', result: result.result });
+  } catch (error) {
+    console.error('Error al eliminar imagen en Cloudinary:', error);
+    res.status(500).json({ error: 'Error al eliminar la imagen', details: error.message });
+  }
+});
+
+// Mantener la ruta antigua para compatibilidad
 app.delete('/api/imagenes/:filename', async (req, res) => {
   if (!ensureCloudinaryConfigured(res)) return;
 
   try {
     const publicId = withFolder(req.params.filename);
+    console.log('Eliminando imagen con filename:', req.params.filename, '-> public_id:', publicId);
+    
     const result = await cloudinary.uploader.destroy(publicId);
 
     if (result.result === 'not found') {

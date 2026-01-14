@@ -20,9 +20,15 @@ const isCloudinaryReady = Boolean(
 );
 
 const stripFolder = (publicId) => {
-  if (!publicId || !CLOUDINARY_FOLDER) return publicId;
-  const prefix = `${CLOUDINARY_FOLDER}/`;
-  return publicId.startsWith(prefix) ? publicId.slice(prefix.length) : publicId;
+  if (!publicId) return publicId;
+  
+  // Si está en carpinteria_maderarte, quitar ese prefijo y la categoría/subcarpeta
+  if (CLOUDINARY_FOLDER && publicId.startsWith(`${CLOUDINARY_FOLDER}/`)) {
+    // Elimina "carpinteria_maderarte/"
+    return publicId.slice(`${CLOUDINARY_FOLDER}/`.length);
+  }
+  
+  return publicId;
 };
 
 const withFolder = (id) => {

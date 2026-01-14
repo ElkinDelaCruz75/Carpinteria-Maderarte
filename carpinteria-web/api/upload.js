@@ -42,15 +42,21 @@ export default async function handler(req, res) {
       }
 
       try {
+        // Obtener la categoría del formulario y capitalizarla
+        const categoria = fields.categoria?.[0] || 'general';
+        const categoriaCapitalizada = categoria.charAt(0).toUpperCase() + categoria.slice(1);
+        const folderPath = `${CLOUDINARY_FOLDER}/${categoriaCapitalizada}`;
+
         const result = await cloudinary.uploader.upload(file.path, {
-          folder: CLOUDINARY_FOLDER,
+          folder: folderPath,
           resource_type: 'image'
         });
 
         res.status(200).json({
           success: true,
           url: result.secure_url,
-          filename: stripFolder(result.public_id)
+          filename: stripFolder(result.public_id),
+          categoria: categoria
         });
       } catch (uploadError) {
         console.error('Error al subir imagen a Cloudinary:', uploadError);
